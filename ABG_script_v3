@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Feb 10 08:34:57 2024
+
+@author: jacktietjen
+"""
+
+
+def ABG(pH, CO2, O2, HCO3):
+
+# defines normal parameters of pH 
+    def pH_value(pH): 
+       
+        if 7.35 <= pH <= 7.45:
+            return "normal"
+        elif pH < 7.35:
+            return "acidosis"
+        elif pH > 7.45: 
+            return "alkalosis"
+         
+    pH_output = pH_value(pH)        
+
+# defines normal values for CO2 
+    def CO2_value(CO2): 
+       
+        if 35 <= CO2 <= 45:
+           return "normal"
+        elif CO2 <= 35:
+             return"hypocarbic"
+        elif CO2 >= 45: 
+            return "hypercarbic"
+        
+    CO2_output = CO2_value(CO2)
+    
+# defines normal values for oxygen
+    def O2_value(O2): 
+        
+        if 0 <= O2 <= 40: 
+             return "severe hypoxemia"
+        elif 40 <= O2 <= 60:
+             return "moderate hypoxemia"
+        elif 60 <= O2 <= 80:
+             return "mild hypoxemia"
+        elif 80 <= O2 <= 100:
+                 return "normal oxygenation"
+        elif O2 > 100:
+             return "hyperoxemia" 
+         
+    O2_output = O2_value(O2)
+
+# defines normal parameters for bicarb 
+    def HCO3_value(HCO3): 
+
+        if 22 <= HCO3 <= 26: 
+            return "normal"
+        elif HCO3 < 22:
+            return "low"
+        elif HCO3 > 28:
+            return "high" 
+        
+    HCO3_output = HCO3_value(HCO3) 
+        
+# this will evaluate the degree of compensation if any in the ABG
+# these values amount to 4 cases 
+    def compensation(pH_value, CO2_value, HCO3_value):
+        
+        # partial or uncompensated
+        if pH_value != "normal" :   #abnormal pH 
+            if CO2_value != "normal" and HCO3_value =="normal" or CO2_value == "normal" and HCO3_value !="normal" :
+                return "uncompensated" 
+            # abnormal pH and abnormal CO2 and HCO3
+            elif CO2_value != "normal" and HCO3_value !="normal": 
+                return "partially compensated"
+            # improbable case with abnormal pH but normal CO2 and HCO3
+            elif CO2_value == "normal" and HCO3_value =="normal": 
+                return "abnormal uncompensated"
+            
+        # all normal
+        if pH_value == "normal" and CO2_value == "normal" and HCO3_value =="normal" :
+            return "normal acid base balance" 
+        
+        # fully compensated
+        if pH_value == "normal" :
+            if CO2_value != "normal" and HCO3_value !="normal": 
+                return "fully compensated"
+        
+    comp_output = compensation(pH_value, CO2_value, HCO3_value) 
+        
+# this is the primary component of the ABG 
+# 4 fundemental cases, and 4 unique cases 
+    def gas(pH_value, CO2_value, HCO3_value, comp_output): 
+        
+        if comp_output == "normal acid base balance":
+            return ""
+        # main cases 
+        elif pH_value == "acidosis" and CO2_value == "hypercarbic": 
+            return "respiratory acidosis" 
+        elif pH_value == "alkalosis" and CO2_value == "hypocarbic": 
+            return "respiratory alkalosis"
+        elif pH_value == "acidosis" and HCO3_value == "low": 
+            return "metabolic acidosis"
+        elif pH_value == "alkalosis" and HCO3_value == "high": 
+            return "metabolic alkalosis"
+        
+        # unique cases
+        elif pH_value == "normal" and CO2_value == "hypercarbic" and HCO3_value == "high":
+            return "acute-on-chronic"
+        elif pH_value != "normal" and CO2_value == "normal" and HCO3_value == "normal": 
+            return "unknown etiology"
+        elif CO2_value == "hypercarbic" and HCO3_value == "low":
+            return "mixed acidosis" 
+        elif CO2_value == "hypocarbic" and HCO3_value == "high":
+            return "mixed alkalosis" 
+        else: 
+            return "" 
+        
+    gas_output = gas(pH_output, CO2_output, HCO3_output, comp_output)
+      
+# winters formula determines if there is respiratory compensation in a metabolic acidosis 
+# this function is only called if the appropriate criteria is met (a metabolic acidosis)
+
+    def winter(CO2, HCO3): 
+        expCO2 = (1.5*HCO3 + 8)
+        dCO2 = CO2 - expCO2
+        winters = f"\nWinter's Formula states that expected CO2 is {expCO2} +/- 2\nThe CO2 difference is {dCO2}"
+        return winters 
+        
+    winter_output = winter(CO2, HCO3)
+    
+# the following terms define the bulk of the ABG functions output 
+    oxy = O2_value(O2)
+    comp = compensation(pH_value(pH), CO2_value(CO2), HCO3_value(HCO3))
+    main = gas(pH_value(pH), CO2_value(CO2), HCO3_value(HCO3), comp_output) 
+    
+# this is an f string that prints the interpretation given all the previous functions
+    interp = f"is a(n) {comp} {main} with {oxy}"
+     
+# this will call the Winters Formula function is the criteria is met 
+    if gas_output == "metabolic acidosis" : 
+        interp += winter_output
+      
+    result = f"{pH}/{CO2}/{O2}/{HCO3} {interp}"
+    return result
+# this function ABG can now take 4 arguments and output an interpretation 
+# I will input a range of values including edge cases 
+
+cases = []
+
+cases.append(ABG(7.40, 40, 85, 24))
+cases.append(ABG(7.21, 57, 42, 25))
+cases.append(ABG(7.32, 42, 75, 19))
+cases.append(ABG(7.36, 50, 62, 33))
+cases.append(ABG(7.51, 43, 45, 37))
+cases.append(ABG(7.33, 28, 80, 17))
+cases.append(ABG(7.44, 55, 120, 11))
+
+for i in cases: 
+    print(i)
+    
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
